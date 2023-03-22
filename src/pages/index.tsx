@@ -26,7 +26,7 @@ import { useRouter } from 'next/router';
 const inter = Inter({ subsets: ['latin'] });
 
 
-export default function Home() {
+export default function Login() {
   const router = useRouter();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [email, setEmail] = useState("");
