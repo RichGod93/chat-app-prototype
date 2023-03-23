@@ -1,96 +1,84 @@
-import { createContext, ReactElement, useEffect, useState, FC } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { useRouter } from 'next/router';
 import {
     createUserWithEmailAndPassword,
+    sendEmailVerification,
     signInWithEmailAndPassword,
-    onAuthStateChanged,
-    signOut,
     sendPasswordResetEmail,
+    signOut,
+    onAuthStateChanged,
+    User,
 } from 'firebase/auth';
-import { auth } from '../config/firebase';
-import { useRouter } from 'next/router';
+import { auth } from '@/config/firebase';
 
-interface User {
-    uid: string;
-    email: string;
-    displayName?: string;
-};
-
-interface AuthContextProps {
-    currentUser: User | null,
-    signup: (email: string, password: string) => Promise<void>;
+type AuthContextType = {
+    user: User | null;
+    loading: boolean;
+    signUp: (email: string, password: string) => Promise<void>;
     login: (email: string, password: string) => Promise<void>;
+    resetPassword: (email: string) => Promise<void>;
     logout: () => Promise<void>;
 };
 
-interface AuthProviderProps {
-    children: React.ReactNode;
-}
+type AuthProviderProps = {
+    children: ReactNode;
+};
 
-export const AuthContext = createContext<AuthContextProps>({
-    currentUser: null,
-    signup: async () => { },
+const AuthContext = createContext<AuthContextType>({
+    user: null,
+    loading: true,
+    signUp: async () => { },
     login: async () => { },
+    resetPassword: async () => { },
     logout: async () => { },
 });
 
-export const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactElement | null => {
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
+export const useAuth = () => useContext(AuthContext);
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }: AuthProviderProps) => {
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                setCurrentUser({
-                    uid: user.uid,
-                    email: user.email || '',
-                    displayName: user.displayName || '',
-                });
-            } else {
-                setCurrentUser(null);
-            }
-        });
+    // useEffect(() => {
+    //     const unsubscribe = onAuthStateChanged(auth, (user) => {
+    //         setUser(user);
+    //         setLoading(false);
+    //         if (!user) {
+    //             router.push('/');
+    //         }
+    //     });
 
-        return unsubscribe;
-    }, []);
+    //     return () => unsubscribe();
+    // }, []);
 
-    async function signup(email: string, password: string): Promise<void> {
-        try {
-            await createUserWithEmailAndPassword(auth, email, password);
-
-        } catch (error: any) {
-            console.log(error);
-            throw error;
+    const signUp = async (email: string, password: string) => {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        if (userCredential.user) {
+            await sendEmailVerification(userCredential.user);
         }
-
+        router.push('./home');
     };
 
-    async function login(email: string, password: string) {
+    const login = async (email: string, password: string) => {
         await signInWithEmailAndPassword(auth, email, password);
+        router.push('./home');
     };
 
-    async function forgotPassword(email: any) {
-        try {
-            await sendPasswordResetEmail(auth, email, {
-                url: 'http://localhost:3000/'
-            });
-        } catch (error: any) {
-            console.log(error);
-        }
-    }
+    const resetPassword = async (email: string) => {
+        await sendPasswordResetEmail(auth, email, {
+            url: 'http://localhost:3000',
+        });
+    };
 
-    async function logout() {
+    const logout = async () => {
         await signOut(auth);
-    };
-
-    const value = {
-        currentUser,
-        signup,
-        login,
-        logout,
+        localStorage.clear();
+        window.location.pathname = '/';
     };
 
     return (
-        <AuthContext.Provider value={value}>
+        <AuthContext.Provider value={{ user, loading, signUp, login, resetPassword, logout }}>
             {children}
         </AuthContext.Provider>
     );
