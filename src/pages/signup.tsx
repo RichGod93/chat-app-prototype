@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import Head from 'next/head';
 import {
     Center,
@@ -20,22 +20,31 @@ import { useAuth } from '@/context/AuthContext';
 
 
 export default function Signup() {
-    const { signUp, user } = useAuth();
+    const { signUp } = useAuth();
     const router = useRouter();
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const user = auth.currentUser;
 
-    const getAndSetDisplayName = () => {
-        updateProfile(user!, {
-            displayName: username
-        });
-    };
-
-    const handleSignup = () => {
+    const handleSignup = (event: FormEvent<EventTarget>) => {
+        event.preventDefault();
         try {
             signUp(email, password);
-            getAndSetDisplayName();
+
+            if (user) {
+                updateProfile(user, {
+                    displayName: username
+                }).then(() => {
+                    console.log('displayName updated!');
+                }).catch((error: any) => {
+                    console.log(error, 'displayName not updated');
+                });
+            } else {
+                console.log('could not update displayName');
+            }
+
+            router.push('./home');
         } catch (error: any) {
             console.log(error, 'could not sign user up');
             router.push('./signup');
@@ -62,10 +71,10 @@ export default function Signup() {
             </Head>
             <main className="">
                 <Center h={'100vh'}>
-                    <form onSubmit={() => { handleSignup(); }}>
+                    <form onSubmit={handleSignup}>
                         <Stack spacing={4} width={'lg'}>
                             <Heading size='3xl'>Sign up</Heading>
-                            <Link href='/' className='text-xs'>{`Already have an account? Login`}</Link>
+                            <Link href='./' className='text-xs'>{`Already have an account? Login`}</Link>
                             <FormControl id='displayName'>
                                 <FormLabel>Username</FormLabel>
                                 <Input type='text' placeholder='joseph1234' value={username} onChange={(e) => setUsername(e.target.value)} />
