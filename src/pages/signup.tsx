@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import Head from 'next/head';
-import { Inter } from 'next/font/google';
 import {
     Center,
     Input,
@@ -10,28 +9,57 @@ import {
     FormControl,
     FormLabel,
     Link,
-    useDisclosure,
-    Modal,
-    ModalOverlay,
-    ModalContent,
-    ModalHeader,
-    ModalCloseButton,
-    ModalBody,
-    ModalFooter
 } from '@chakra-ui/react';
 
 import { FaGoogle } from "react-icons/fa";
 import { useRouter } from 'next/router';
 
-const inter = Inter({ subsets: ['latin'] });
+import { signInWithPopup, updateProfile } from 'firebase/auth';
+import { auth, provider } from '@/config/firebase';
+import { useAuth } from '@/context/AuthContext';
 
 
 export default function Signup() {
+    const { signUp } = useAuth();
     const router = useRouter();
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [username, setUsername] = useState("");
+    const user = auth.currentUser;
+
+    const handleSignup = (event: FormEvent<EventTarget>) => {
+        event.preventDefault();
+        try {
+            signUp(email, password);
+
+            if (user) {
+                updateProfile(user, {
+                    displayName: username
+                }).then(() => {
+                    console.log('displayName updated!');
+                }).catch((error: any) => {
+                    console.log(error, 'displayName not updated');
+                });
+            } else {
+                console.log('could not update displayName');
+            }
+
+            router.push('./home');
+        } catch (error: any) {
+            console.log(error, 'could not sign user up');
+            router.push('./signup');
+        }
+    };
+
+    const handleGoogleSignUp = async () => {
+        try {
+            await signInWithPopup(auth, provider);
+            router.push('./home');
+        } catch (error: any) {
+            console.log(error, 'could not sign user up with google');
+            router.push('./signup');
+        }
+    };
 
     return (
         <>
@@ -43,10 +71,10 @@ export default function Signup() {
             </Head>
             <main className="">
                 <Center h={'100vh'}>
-                    <form>
+                    <form onSubmit={handleSignup}>
                         <Stack spacing={4} width={'lg'}>
                             <Heading size='3xl'>Sign up</Heading>
-                            <Link href='/' className='text-xs'>{`Already have an account? Login`}</Link>
+                            <Link href='./' className='text-xs'>{`Already have an account? Login`}</Link>
                             <FormControl id='displayName'>
                                 <FormLabel>Username</FormLabel>
                                 <Input type='text' placeholder='joseph1234' value={username} onChange={(e) => setUsername(e.target.value)} />
@@ -59,19 +87,15 @@ export default function Signup() {
                                 <FormLabel>Password</FormLabel>
                                 <Input type='password' placeholder='password' value={password} onChange={(e) => setPassword(e.target.value)} />
                             </FormControl>
-                            <Button colorScheme={'blue'} size='lg'>
+                            <Button type='submit' colorScheme={'blue'} size='lg'>
                                 Sign in
                             </Button>
-                            <Button colorScheme={'red'} size='lg' leftIcon={<FaGoogle />}>
-                                Sign in with Google
+                            <Button colorScheme={'red'} size='lg' leftIcon={<FaGoogle />} onClick={() => { handleGoogleSignUp(); }}>
+                                Sign up with Google
                             </Button>
                         </Stack>
                     </form>
-
-
                 </Center>
-
-
             </main>
         </>
     );
