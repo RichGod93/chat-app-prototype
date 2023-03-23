@@ -54,15 +54,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }: AuthProv
 
     const signUp = async (email: string, password: string) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        if (userCredential.user) {
-            await sendEmailVerification(userCredential.user);
-        }
-        router.push('./home');
+        // if (userCredential.user) {
+        //     await sendEmailVerification(userCredential.user);
+        // }
     };
 
     const login = async (email: string, password: string) => {
         await signInWithEmailAndPassword(auth, email, password);
-        router.push('./home');
     };
 
     const resetPassword = async (email: string) => {
