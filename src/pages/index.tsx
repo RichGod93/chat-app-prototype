@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import Head from 'next/head';
 import {
   Center,
@@ -33,12 +33,13 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
+  const handleLogin = async (event: FormEvent<EventTarget>) => {
+    event.preventDefault();
     try {
-      login(email, password);
+      await login(email, password);
+      router.push('./home');
     } catch (error: any) {
       console.log(error, 'could not sign user in');
-      router.push('./');
     }
   };
 
@@ -48,7 +49,7 @@ export default function Login() {
       router.push('./home');
     } catch (error: any) {
       console.log(error, 'could not sign user in with google');
-      router.push('./signup');
+      router.push('./');
     }
   };
 
@@ -70,10 +71,10 @@ export default function Login() {
       </Head>
       <main className="">
         <Center h={'100vh'}>
-          <form onSubmit={() => { handleLogin(); }}>
+          <form onSubmit={handleLogin}>
             <Stack spacing={4} width={'lg'}>
               <Heading size='3xl'>Login</Heading>
-              <Link href='/signup' className='text-xs'>{`Don't have an account? Sign up`}</Link>
+              <Link href='./signup' className='text-xs'>{`Don't have an account? Sign up`}</Link>
               <FormControl id='email'>
                 <FormLabel>Email address</FormLabel>
                 <Input type='email' placeholder='example@email.com' value={email} onChange={(e) => setEmail(e.target.value)} />
