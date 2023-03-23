@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
-import { Inter } from 'next/font/google';
 import {
   Center,
   Input,
@@ -22,15 +21,44 @@ import {
 
 import { FaGoogle } from "react-icons/fa";
 import { useRouter } from 'next/router';
-
-const inter = Inter({ subsets: ['latin'] });
+import { useAuth } from '@/context/AuthContext';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, provider } from '@/config/firebase';
 
 
 export default function Login() {
+  const { login, resetPassword } = useAuth();
   const router = useRouter();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const handleLogin = () => {
+    try {
+      login(email, password);
+    } catch (error: any) {
+      console.log(error, 'could not sign user in');
+      router.push('./');
+    }
+  };
+
+  const handleGoogleSignIp = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+      router.push('./home');
+    } catch (error: any) {
+      console.log(error, 'could not sign user in with google');
+      router.push('./signup');
+    }
+  };
+
+  const recoverPassword = () => {
+    try {
+      resetPassword(email);
+    } catch (error: any) {
+      console.log(error, 'could not send email verification link');
+    }
+  };
 
   return (
     <>
@@ -42,7 +70,7 @@ export default function Login() {
       </Head>
       <main className="">
         <Center h={'100vh'}>
-          <form>
+          <form onSubmit={() => { handleLogin(); }}>
             <Stack spacing={4} width={'lg'}>
               <Heading size='3xl'>Login</Heading>
               <Link href='/signup' className='text-xs'>{`Don't have an account? Sign up`}</Link>
@@ -70,24 +98,20 @@ export default function Login() {
                   </ModalBody>
                   <ModalFooter>
                     <Button mr={3} onClick={onClose}>Cancel</Button>
-                    <Button colorScheme='blue'>Recover Password</Button>
+                    <Button colorScheme='blue' onClick={() => { recoverPassword(); }}>Recover Password</Button>
                   </ModalFooter>
                 </ModalContent>
               </Modal>
 
-              <Button colorScheme={'blue'} size='lg'>
+              <Button type='submit' colorScheme={'blue'} size='lg'>
                 Sign in
               </Button>
-              <Button colorScheme={'red'} size='lg' leftIcon={<FaGoogle />}>
+              <Button colorScheme={'red'} size='lg' leftIcon={<FaGoogle />} onClick={() => { handleGoogleSignIp(); }}>
                 Sign in with Google
               </Button>
             </Stack>
           </form>
-
-
         </Center>
-
-
       </main>
     </>
   );
