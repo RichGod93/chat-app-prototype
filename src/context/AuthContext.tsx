@@ -71,6 +71,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }: AuthProv
 
     const logout = async () => {
         await signOut(auth);
+        router.push('/');
+
         localStorage.clear();
         window.location.pathname = '/';
     };
