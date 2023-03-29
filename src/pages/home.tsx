@@ -1,15 +1,13 @@
-import Sidebar from "@/components/Sidebar";
-import { HStack } from "@chakra-ui/react";
+import Layout from "@/components/Layout";
+import { Box } from "@chakra-ui/react";
+import Chats from "./chats/[id]";
 
 const Home = () => {
     return (
         <>
-            <HStack>
-                <div className="w-60 border-r border-gray-700"><Sidebar /></div>
-
-                <div className="flex-1"><p>Home</p></div>
-            </HStack>
-
+            <Box>
+                <Chats />
+            </Box>
         </>
     );
 };
