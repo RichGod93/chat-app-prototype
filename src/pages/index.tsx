@@ -16,48 +16,112 @@ import {
   ModalHeader,
   ModalCloseButton,
   ModalBody,
-  ModalFooter
+  ModalFooter,
+  useToast
 } from '@chakra-ui/react';
 
 import { FaGoogle } from "react-icons/fa";
 import { useRouter } from 'next/router';
 import { useAuth } from '@/context/AuthContext';
 import { signInWithPopup } from 'firebase/auth';
-import { auth, provider } from '@/config/firebase';
+import { auth, db, provider } from '@/config/firebase';
+import { collection, doc, setDoc } from 'firebase/firestore';
 
 
 export default function Login() {
   const { login, resetPassword } = useAuth();
   const router = useRouter();
+  const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const isOnline = collection(db, 'isOnline');
 
   const handleLogin = async (event: FormEvent<EventTarget>) => {
     event.preventDefault();
     try {
       await login(email, password);
+
+      if (auth.currentUser != null) {
+        setDoc(doc(isOnline, auth?.currentUser.uid), {
+          isOnline: true,
+        });
+        console.log('user signed in');
+        toast({
+          title: 'Welcome',
+          description: 'You have successfully signed in',
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        });
+      }
+
       router.push('./home');
     } catch (error: any) {
       console.log(error, 'could not sign user in');
+      router.push('./');
+      toast({
+        title: 'Error',
+        description: 'Could not sign you in',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
   const handleGoogleSignIp = async () => {
     try {
       await signInWithPopup(auth, provider);
+
+      if (auth.currentUser != null) {
+        setDoc(doc(isOnline, auth?.currentUser.uid), {
+          isOnline: true,
+        });
+        console.log('user signed in with google');
+        toast({
+          title: 'Welcome',
+          description: 'You have successfully signed in',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+
       router.push('./home');
     } catch (error: any) {
       console.log(error, 'could not sign user in with google');
       router.push('./');
+      toast({
+        title: 'Sorry',
+        description: 'Could not sign you in with google because the popup was closed',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
     }
   };
 
   const recoverPassword = () => {
     try {
       resetPassword(email);
+
+      toast({
+        title: 'Email sent!',
+        description: 'Check your email for a link to reset your password',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
     } catch (error: any) {
       console.log(error, 'could not send email verification link');
+      toast({
+        title: 'Error',
+        description: 'Could not send email verification link',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
     }
   };
 
@@ -73,7 +137,7 @@ export default function Login() {
         <Center h={'100vh'}>
           <form onSubmit={handleLogin}>
             <Stack spacing={4} width={'lg'}>
-              <Heading size='3xl'>Login</Heading>
+              <Heading size='3xl'>Sign in</Heading>
               <Link href='./signup' className='text-xs'>{`Don't have an account? Sign up`}</Link>
               <FormControl id='email'>
                 <FormLabel>Email address</FormLabel>
