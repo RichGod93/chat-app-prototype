@@ -9,36 +9,52 @@ import {
     FormControl,
     FormLabel,
     Link,
+    useToast,
 } from '@chakra-ui/react';
 
 import { FaGoogle } from "react-icons/fa";
 import { useRouter } from 'next/router';
 
 import { signInWithPopup, updateProfile } from 'firebase/auth';
-import { auth, provider } from '@/config/firebase';
+import { auth, db, provider } from '@/config/firebase';
 import { useAuth } from '@/context/AuthContext';
+import { collection, doc, setDoc } from 'firebase/firestore';
 
 
 export default function Signup() {
     const { signUp } = useAuth();
     const router = useRouter();
+    const toast = useToast();
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const user = auth.currentUser;
+    const isOnline = collection(db, 'isOnline');
 
     const handleSignup = (event: FormEvent<EventTarget>) => {
         event.preventDefault();
         try {
             signUp(email, password);
 
-            if (user) {
-                updateProfile(user, {
+            if (auth.currentUser != null) {
+                updateProfile(auth.currentUser, {
                     displayName: username
                 }).then(() => {
                     console.log('displayName updated!');
                 }).catch((error: any) => {
-                    console.log(error, 'displayName not updated');
+                    console.log(error, 'could not update displayName');
+                });
+
+                setDoc(doc(isOnline, auth?.currentUser.uid), {
+                    isOnline: true,
+                });
+
+                console.log('user signed up!');
+                toast({
+                    title: 'Welcome',
+                    description: 'You have successfully created an account!',
+                    status: 'success',
+                    duration: 2000,
+                    isClosable: true,
                 });
             } else {
                 console.log('could not update displayName');
@@ -48,16 +64,45 @@ export default function Signup() {
         } catch (error: any) {
             console.log(error, 'could not sign user up');
             router.push('./signup');
+            toast({
+                title: 'Error',
+                description: 'Could not sign you up',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
         }
     };
 
     const handleGoogleSignUp = async () => {
         try {
             await signInWithPopup(auth, provider);
+
+            if (auth.currentUser != null) {
+                setDoc(doc(isOnline, auth?.currentUser.uid), {
+                    isOnline: true,
+                });
+                console.log('user signed up with google!');
+                toast({
+                    title: 'Welcome',
+                    description: 'You have successfully created an account!',
+                    status: 'success',
+                    duration: 2000,
+                    isClosable: true,
+                });
+            }
+
             router.push('./home');
         } catch (error: any) {
             console.log(error, 'could not sign user up with google');
             router.push('./signup');
+            toast({
+                title: 'Error',
+                description: 'Could not sign you up with google',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
         }
     };
 
