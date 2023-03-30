@@ -1,12 +1,13 @@
 import Layout from "@/components/Layout";
 import { Box } from "@chakra-ui/react";
-import Chats from "./chats/[id]";
+import { Timestamp } from "firebase/firestore";
+import Chat from "./chats/[id]";
 
 const Home = () => {
     return (
         <>
             <Box>
-                <Chats />
+                <Chat key={""} id={""} sender={""} message={""} timestamp={Timestamp} />
             </Box>
         </>
     );

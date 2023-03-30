@@ -10,6 +10,8 @@ import {
     FormLabel,
     Link,
     useToast,
+    InputGroup,
+    InputRightElement,
 } from '@chakra-ui/react';
 
 import { FaGoogle } from "react-icons/fa";
@@ -28,6 +30,8 @@ export default function Signup() {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [show, setShow] = useState(false);
+    const handleClick = () => setShow(!show);
     const isOnline = collection(db, 'isOnline');
 
     const handleSignup = (event: FormEvent<EventTarget>) => {
@@ -122,15 +126,28 @@ export default function Signup() {
                             <Link href='./' className='text-xs'>{`Already have an account? Login`}</Link>
                             <FormControl id='displayName'>
                                 <FormLabel>Username</FormLabel>
-                                <Input type='text' placeholder='joseph1234' value={username} onChange={(e) => setUsername(e.target.value)} />
+                                <Input type='text' placeholder='joseph1234' size='md' value={username} onChange={(e) => setUsername(e.target.value)} />
                             </FormControl>
                             <FormControl id='email'>
                                 <FormLabel>Email address</FormLabel>
-                                <Input type='email' placeholder='example@email.com' value={email} onChange={(e) => setEmail(e.target.value)} />
+                                <Input type='email' placeholder='example@email.com' size='md' value={email} onChange={(e) => setEmail(e.target.value)} />
                             </FormControl>
-                            <FormControl id='password'>
+                            <FormControl id="password">
                                 <FormLabel>Password</FormLabel>
-                                <Input type='password' placeholder='password' value={password} onChange={(e) => setPassword(e.target.value)} />
+                                <InputGroup size={'md'}>
+                                    <Input
+                                        pr="4.5rem"
+                                        type={show ? "text" : "password"}
+                                        placeholder="Enter password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                    />
+                                    <InputRightElement width="4.5rem">
+                                        <Button h="1.75rem" size="sm" onClick={handleClick}>
+                                            {show ? "Hide" : "Show"}
+                                        </Button>
+                                    </InputRightElement>
+                                </InputGroup>
                             </FormControl>
                             <Button type='submit' colorScheme={'blue'} size='lg'>
                                 Sign in
