@@ -47,14 +47,14 @@ export default function Chats(chatProps: ChatProps) {
 
     return (
         <div>
-            <Chat
+            {/* <Chat
                 key={chatProps.key}
                 id={chatProps.id}
                 sender={chatProps.sender}
                 message={chatProps.message}
                 timestamp={chatProps.timestamp}
                 recieved={chatProps?.received}
-            />
+            /> */}
         </div>
     );
 }
