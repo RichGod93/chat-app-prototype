@@ -1,5 +1,5 @@
-import React, { FormEvent, useState } from 'react';
-import Head from 'next/head';
+import React, { FormEvent, useState } from "react";
+import Head from "next/head";
 import {
   Center,
   Input,
@@ -17,16 +17,17 @@ import {
   ModalCloseButton,
   ModalBody,
   ModalFooter,
-  useToast
-} from '@chakra-ui/react';
+  useToast,
+  InputGroup,
+  InputRightElement,
+} from "@chakra-ui/react";
 
 import { FaGoogle } from "react-icons/fa";
-import { useRouter } from 'next/router';
-import { useAuth } from '@/context/AuthContext';
-import { signInWithPopup } from 'firebase/auth';
-import { auth, db, provider } from '@/config/firebase';
-import { collection, doc, setDoc } from 'firebase/firestore';
-
+import { useRouter } from "next/router";
+import { useAuth } from "@/context/AuthContext";
+import { signInWithPopup } from "firebase/auth";
+import { auth, db, provider } from "@/config/firebase";
+import { collection, doc, setDoc } from "firebase/firestore";
 
 export default function Login() {
   const { login, resetPassword } = useAuth();
@@ -35,7 +36,9 @@ export default function Login() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const isOnline = collection(db, 'isOnline');
+  const [show, setShow] = useState(false);
+  const handleClick = () => setShow(!show);
+  const isOnline = collection(db, "isOnline");
 
   const handleLogin = async (event: FormEvent<EventTarget>) => {
     event.preventDefault();
@@ -46,24 +49,24 @@ export default function Login() {
         setDoc(doc(isOnline, auth?.currentUser.uid), {
           isOnline: true,
         });
-        console.log('user signed in');
+        console.log("user signed in");
         toast({
-          title: 'Welcome',
-          description: 'You have successfully signed in',
-          status: 'success',
+          title: "Welcome",
+          description: "You have successfully signed in",
+          status: "success",
           duration: 2000,
           isClosable: true,
         });
       }
 
-      router.push('./home');
+      router.push("./home");
     } catch (error: any) {
-      console.log(error, 'could not sign user in');
-      router.push('./');
+      console.log(error, "could not sign user in");
+      router.push("./");
       toast({
-        title: 'Error',
-        description: 'Could not sign you in',
-        status: 'error',
+        title: "Error",
+        description: "Could not sign you in",
+        status: "error",
         duration: 3000,
         isClosable: true,
       });
@@ -78,24 +81,25 @@ export default function Login() {
         setDoc(doc(isOnline, auth?.currentUser.uid), {
           isOnline: true,
         });
-        console.log('user signed in with google');
+        console.log("user signed in with google");
         toast({
-          title: 'Welcome',
-          description: 'You have successfully signed in',
-          status: 'success',
+          title: "Welcome",
+          description: "You have successfully signed in",
+          status: "success",
           duration: 3000,
           isClosable: true,
         });
       }
 
-      router.push('./home');
+      router.push("./home");
     } catch (error: any) {
-      console.log(error, 'could not sign user in with google');
-      router.push('./');
+      console.log(error, "could not sign user in with google");
+      router.push("./");
       toast({
-        title: 'Sorry',
-        description: 'Could not sign you in with google because the popup was closed',
-        status: 'error',
+        title: "Sorry",
+        description:
+          "Could not sign you in with google because the popup was closed",
+        status: "error",
         duration: 5000,
         isClosable: true,
       });
@@ -107,18 +111,18 @@ export default function Login() {
       resetPassword(email);
 
       toast({
-        title: 'Email sent!',
-        description: 'Check your email for a link to reset your password',
-        status: 'success',
+        title: "Email sent!",
+        description: "Check your email for a link to reset your password",
+        status: "success",
         duration: 5000,
         isClosable: true,
       });
     } catch (error: any) {
-      console.log(error, 'could not send email verification link');
+      console.log(error, "could not send email verification link");
       toast({
-        title: 'Error',
-        description: 'Could not send email verification link',
-        status: 'error',
+        title: "Error",
+        description: "Could not send email verification link",
+        status: "error",
         duration: 5000,
         isClosable: true,
       });
@@ -134,44 +138,92 @@ export default function Login() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="">
-        <Center h={'100vh'}>
+        <Center h={"100vh"}>
           <form onSubmit={handleLogin}>
-            <Stack spacing={4} width={'lg'}>
-              <Heading size='3xl'>Sign in</Heading>
-              <Link href='./signup' className='text-xs'>{`Don't have an account? Sign up`}</Link>
-              <FormControl id='email'>
+            <Stack spacing={4} width={"lg"}>
+              <Heading size="3xl">Sign in</Heading>
+              <Link
+                href="./signup"
+                className="text-xs"
+              >{`Don't have an account? Sign up`}</Link>
+              <FormControl id="email">
                 <FormLabel>Email address</FormLabel>
-                <Input type='email' placeholder='example@email.com' value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input
+                  type="email"
+                  placeholder="example@email.com"
+                  size={'md'}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </FormControl>
-              <FormControl id='password'>
+              <FormControl id="password">
                 <FormLabel>Password</FormLabel>
-                <Input type='password' placeholder='password' value={password} onChange={(e) => setPassword(e.target.value)} />
+                <InputGroup size={'md'}>
+                  <Input
+                    pr="4.5rem"
+                    type={show ? "text" : "password"}
+                    placeholder="Enter password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <InputRightElement width="4.5rem">
+                    <Button h="1.75rem" size="sm" onClick={handleClick}>
+                      {show ? "Hide" : "Show"}
+                    </Button>
+                  </InputRightElement>
+                </InputGroup>
               </FormControl>
-              <Button alignSelf='end' variant='link' className='text-xs' onClick={onOpen}>Forgot password?</Button>
+              <Button
+                alignSelf="end"
+                variant="link"
+                className="text-xs"
+                onClick={onOpen}
+              >
+                Forgot password?
+              </Button>
               <Modal isOpen={isOpen} onClose={onClose}>
                 <ModalOverlay />
                 <ModalContent>
-                  <ModalHeader>
-                    Forgot Password?
-                  </ModalHeader>
+                  <ModalHeader>Forgot Password?</ModalHeader>
                   <ModalCloseButton />
                   <ModalBody>
-                    <FormControl id='email'>
+                    <FormControl id="email">
                       <FormLabel>Email address</FormLabel>
-                      <Input type='email' placeholder='example@email.com' value={email} onChange={(e) => setEmail(e.target.value)} />
+                      <Input
+                        type="email"
+                        placeholder="example@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
                     </FormControl>
                   </ModalBody>
                   <ModalFooter>
-                    <Button mr={3} onClick={onClose}>Cancel</Button>
-                    <Button colorScheme='blue' onClick={() => { recoverPassword(); }}>Recover Password</Button>
+                    <Button mr={3} onClick={onClose}>
+                      Cancel
+                    </Button>
+                    <Button
+                      colorScheme="blue"
+                      onClick={() => {
+                        recoverPassword();
+                      }}
+                    >
+                      Recover Password
+                    </Button>
                   </ModalFooter>
                 </ModalContent>
               </Modal>
 
-              <Button type='submit' colorScheme={'blue'} size='lg'>
+              <Button type="submit" colorScheme={"blue"} size="lg">
                 Sign in
               </Button>
-              <Button colorScheme={'red'} size='lg' leftIcon={<FaGoogle />} onClick={() => { handleGoogleSignIp(); }}>
+              <Button
+                colorScheme={"red"}
+                size="lg"
+                leftIcon={<FaGoogle />}
+                onClick={() => {
+                  handleGoogleSignIp();
+                }}
+              >
                 Sign in with Google
               </Button>
             </Stack>
